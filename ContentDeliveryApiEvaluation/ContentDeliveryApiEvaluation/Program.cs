@@ -12,12 +12,12 @@ namespace ContentDeliveryApiEvaluation
 
       using (var client = new HttpClient())
       {
-        client.BaseAddress = new Uri("https://cdn.contentful.com/");
+        client.BaseAddress = new Uri("https://preview.contentful.com/");
         client.DefaultRequestHeaders.Accept.Clear();
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-
-        var response = client.GetAsync("spaces/cfexampleapi?access_token=b4c0n73n7fu1").Result;
+        var response = client.GetAsync(
+          "spaces/zccritvyeajf/entries?content_type=69BaRY3fLGsA0sKo6wAYEQ&access_token=aa0524027dd0df60cc0d87be6bb6f2b3280d7e9e741b4e42ee491ee1d99d38a0").Result;
         if (response.IsSuccessStatusCode)
         {
           var json = response.Content.ReadAsStringAsync().Result;
