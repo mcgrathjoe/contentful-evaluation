@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Mime;
 using System.Threading;
 using Contentful.NET;
 using Contentful.NET.DataModels;
+using Contentful.NET.Search;
+using Contentful.NET.Search.Filters;
 
 namespace ContentDeliveryApiEvaluation
 {
@@ -34,16 +39,46 @@ namespace ContentDeliveryApiEvaluation
         }
       }
 
-      Console.Read();
-
       Console.WriteLine("Now to try ryan-codingintrigue's Contentful.Net package");
 
       var contenfulClient = new ContentfulClient(AccessTokenForPreview, SpaceIdForConditionsSpace, true);
 
-      var areaEntry = contenfulClient.GetAsync<Entry>(new CancellationToken(), "q6GJPH3JBuym6iWUq6yAo").Result;
+      var areaSearchResult = contenfulClient.SearchAsync<Entry>(
+        new CancellationToken(),
+        new []{ new EqualitySearchFilter(BuiltInProperties.SysId, "q6GJPH3JBuym6iWUq6yAo")}).Result;
 
-      Console.WriteLine("Title = " + areaEntry.GetString("Title"));
-      Console.WriteLine("Content = " + areaEntry.GetString("Content"));
+      var areaEntry = areaSearchResult.Items.SingleOrDefault();
+
+      if (areaEntry != null)
+      {
+        Console.WriteLine("Title = " + areaEntry.GetString("Title"));
+        Console.WriteLine("Content = " + areaEntry.GetString("Content"));
+
+        var imageGalleryItemEntries = areaEntry.GetType<IEnumerable<Link>>("Images");
+
+        foreach (
+          var imageGalleryItemEntry in imageGalleryItemEntries.Select(
+            image => areaSearchResult.Includes.Entries.SingleOrDefault(
+              e => e.SystemProperties.Id == image.SystemProperties.Id)))
+        {
+          Console.WriteLine("Image Title = " + imageGalleryItemEntry.GetString("imageTitle"));
+          Console.WriteLine("Description = " + imageGalleryItemEntry.GetString("Description"));
+
+          var images = imageGalleryItemEntry.GetType<IEnumerable<Asset>>("Images");
+
+          foreach (
+            var imageAsset in images.Select(
+              image => areaSearchResult.Includes.Assets.SingleOrDefault(
+                a => a.SystemProperties.Id == image.SystemProperties.Id)))
+          {
+            Console.WriteLine("Url = " + imageAsset.Details.File.Url);
+          }
+
+          
+        }
+
+        Console.WriteLine("Type = " + areaEntry.GetArray("Type"));
+      }
 
       Console.Read();
     }
