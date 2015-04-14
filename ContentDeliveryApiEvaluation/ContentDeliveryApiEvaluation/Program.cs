@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Mime;
 using System.Threading;
 using Contentful.NET;
 using Contentful.NET.DataModels;
@@ -14,8 +14,11 @@ namespace ContentDeliveryApiEvaluation
 {
   class Program
   {
-    private const string AccessTokenForPreview = "aa0524027dd0df60cc0d87be6bb6f2b3280d7e9e741b4e42ee491ee1d99d38a0";
-    private const string SpaceIdForConditionsSpace = "zccritvyeajf";
+    private static AppSettingsReader reader = new AppSettingsReader();
+
+    private static readonly string AccessTokenForPreview = (string)reader.GetValue("AccessTokenForPreview", typeof(string));
+    private static readonly string SpaceIdForConditionsSpace = (string)reader.GetValue("SpaceIdForConditionsSpace", typeof(string));
+    private static readonly string EntryIdForAnArea = (string)reader.GetValue("EntryIdForAnArea", typeof(string));
 
     static void Main(string[] args)
     {
@@ -27,8 +30,9 @@ namespace ContentDeliveryApiEvaluation
         httpClient.DefaultRequestHeaders.Accept.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        var uri = string.Format("spaces/{0}/entries/q6GJPH3JBuym6iWUq6yAo?access_token={1}",
+        var uri = string.Format("spaces/{0}/entries/{1}?access_token={2}",
           SpaceIdForConditionsSpace,
+          EntryIdForAnArea,
           AccessTokenForPreview);
 
         var response = httpClient.GetAsync(uri).Result;
@@ -45,7 +49,7 @@ namespace ContentDeliveryApiEvaluation
 
       var areaSearchResult = contenfulClient.SearchAsync<Entry>(
         new CancellationToken(),
-        new []{ new EqualitySearchFilter(BuiltInProperties.SysId, "q6GJPH3JBuym6iWUq6yAo")}).Result;
+        new[] { new EqualitySearchFilter(BuiltInProperties.SysId, EntryIdForAnArea) }).Result;
 
       var areaEntry = areaSearchResult.Items.SingleOrDefault();
 
